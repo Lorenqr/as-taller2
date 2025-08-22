@@ -1,273 +1,58 @@
 {% extends "layout.html" %}
-
-{% block title %}Lista de Tareas - To-Do App MVC{% endblock %}
-
-{% block breadcrumb %}
-{{ super() }}
-<li class="breadcrumb-item active">Lista de Tareas</li>
-{% endblock %}
+{% block title %}Lista de tareas{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <!-- Header con título y botón de nueva tarea -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h1 class="h2 mb-1">
-                    <i class="fas fa-tasks text-primary me-2"></i>
-                    Mis Tareas
-                </h1>
-                <p class="text-muted mb-0">
-                    Gestiona y organiza tus tareas pendientes
-                </p>
-            </div>
-            <a href="{{ url_for('task_create') }}" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>
-                Nueva Tarea
-            </a>
-        </div>
+<section class="toolbar">
+    <form method="GET" action="{{ url_for('tasks.index') }}" class="filters">
+        <label>Estado:
+        <select name="state" onchange="this.form.submit()">
+            <option value="all" {% if state == 'all' %}selected{% endif %}>Todas</option>
+            <option value="pending" {% if state == 'pending' %}selected{% endif %}>Pendientes</option>
+            <option value="completed" {% if state == 'completed' %}selected{% endif %}>Completadas</option>
+        </select>
+        </label>
+        <label>Orden:
+        <select name="sort" onchange="this.form.submit()">
+            <option value="due_date" {% if sort == 'due_date' %}selected{% endif %}>Fecha vencimiento</option>
+            <option value="title" {% if sort == 'title' %}selected{% endif %}>Título</option>
+        </select>
+        </label>
+        <noscript><button type="submit">Aplicar</button></noscript>
+    </form>
+</section>
 
-        <!-- Estadísticas rápidas -->
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card bg-primary text-white">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h5 class="card-title mb-1">Total</h5>
-                                <h3 class="mb-0">{{ total_tasks }}</h3>
-                            </div>
-                            <div class="ms-3">
-                                <i class="fas fa-tasks fa-2x opacity-75"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+{% if tasks|length == 0 %}
+    <p class="empty">No hay tareas para mostrar.</p>
+    {% else %}
+    <ul class="task-list">
+        {% for task in tasks %}
+        <li class="task {{ 'completed' if task.completed }} {{ 'overdue' if (not task.completed and task.is_overdue) }}">
+            <div class="task-main">
+            <h3>{{ task.title }}</h3>
+            {% if task.description %}
+                <p class="desc">{{ task.description }}</p>
+            {% endif %}
+            {% if task.due_date %}
+                <p class="meta">Vence: {{ task.due_date.strftime('%Y-%m-%d') }}</p>
+            {% endif %}
             </div>
-            <div class="col-md-4">
-                <div class="card bg-warning text-white">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h5 class="card-title mb-1">Pendientes</h5>
-                                <h3 class="mb-0">{{ pending_count }}</h3>
-                            </div>
-                            <div class="ms-3">
-                                <i class="fas fa-clock fa-2x opacity-75"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-success text-white">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h5 class="card-title mb-1">Completadas</h5>
-                                <h3 class="mb-0">{{ completed_count }}</h3>
-                            </div>
-                            <div class="ms-3">
-                                <i class="fas fa-check-circle fa-2x opacity-75"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Filtros y ordenamiento -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <form method="GET" class="row g-3 align-items-end">
-                    <div class="col-md-4">
-                        <label for="filter" class="form-label">
-                            <i class="fas fa-filter me-1"></i>
-                            Filtrar por estado
-                        </label>
-                        <select name="filter" id="filter" class="form-select">
-                            <option value="all" {{ 'selected' if filter_type == 'all' else '' }}>
-                                Todas las tareas
-                            </option>
-                            <option value="pending" {{ 'selected' if filter_type == 'pending' else '' }}>
-                                Solo pendientes
-                            </option>
-                            <option value="completed" {{ 'selected' if filter_type == 'completed' else '' }}>
-                                Solo completadas
-                            </option>
-                            <option value="overdue" {{ 'selected' if filter_type == 'overdue' else '' }}>
-                                Vencidas
-                            </option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="sort" class="form-label">
-                            <i class="fas fa-sort me-1"></i>
-                            Ordenar por
-                        </label>
-                        <select name="sort" id="sort" class="form-select">
-                            <option value="created" {{ 'selected' if sort_by == 'created' else '' }}>
-                                Fecha de creación
-                            </option>
-                            <option value="date" {{ 'selected' if sort_by == 'date' else '' }}>
-                                Fecha de vencimiento
-                            </option>
-                            <option value="title" {{ 'selected' if sort_by == 'title' else '' }}>
-                                Título (A-Z)
-                            </option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <button type="submit" class="btn btn-outline-primary">
-                            <i class="fas fa-search me-1"></i>
-                            Aplicar Filtros
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+            <div class="task-actions">
+            <form method="POST" action="{{ url_for('tasks.toggle_task', task_id=task.id) }}">
+                <button type="submit" class="btn small">
+                {% if task.completed %}↩ Marcar pendiente{% else %}✔ Marcar completada{% endif %}
+                </button>
+            </form>
 
-        <!-- Lista de tareas -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-list me-2"></i>
-                    Tareas
-                    {% if filter_type != 'all' %}
-                        <span class="badge bg-secondary ms-2">{{ filter_type|title }}</span>
-                    {% endif %}
-                </h5>
-            </div>
-            <div class="card-body p-0">
-                {% if tasks %}
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th width="5%">Estado</th>
-                                    <th width="35%">Tarea</th>
-                                    <th width="25%">Descripción</th>
-                                    <th width="15%">Vencimiento</th>
-                                    <th width="10%">Creada</th>
-                                    <th width="10%">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for task in tasks %}
-                                <tr class="{{ 'table-success' if task.completed else 'table-warning' if task.is_overdue() else '' }}">
-                                    <td class="text-center">
-                                        <form method="POST" action="{{ url_for('task_toggle', task_id=task.id) }}" class="d-inline">
-                                            <button type="submit" class="btn btn-sm btn-outline-{{ 'success' if task.completed else 'secondary' }}" title="{{ 'Marcar como pendiente' if task.completed else 'Marcar como completada' }}">
-                                                <i class="fas fa-{{ 'check-circle' if task.completed else 'circle' }}"></i>
-                                            </button>
-                                        </form>
-                                    </td>
-                                    <td>
-                                        <div class="fw-bold {{ 'text-decoration-line-through text-muted' if task.completed else '' }}">
-                                            {{ task.title }}
-                                        </div>
-                                        {% if task.is_overdue() and not task.completed %}
-                                            <small class="text-danger">
-                                                <i class="fas fa-exclamation-triangle me-1"></i>
-                                                Vencida
-                                            </small>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="text-muted small">
-                                            {{ task.description[:50] + '...' if task.description and task.description|length > 50 else task.description or 'Sin descripción' }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        {% if task.due_date %}
-                                            <div class="small">
-                                                <i class="fas fa-calendar me-1"></i>
-                                                {{ task.due_date.strftime('%d/%m/%Y') }}
-                                            </div>
-                                            <div class="text-muted small">
-                                                {{ task.due_date.strftime('%H:%M') }}
-                                            </div>
-                                        {% else %}
-                                            <span class="text-muted">Sin fecha</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="text-muted small">
-                                            {{ task.created_at.strftime('%d/%m/%Y') }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="{{ url_for('task_edit', task_id=task.id) }}" class="btn btn-outline-primary" title="Editar">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form method="POST" action="{{ url_for('task_delete', task_id=task.id) }}" class="d-inline" onsubmit="return confirmDelete('{{ task.title }}')">
-                                                <button type="submit" class="btn btn-outline-danger" title="Eliminar">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <!-- Estado vacío -->
-                    <div class="text-center py-5">
-                        <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
-                        <h4 class="text-muted">No hay tareas</h4>
-                        <p class="text-muted mb-4">
-                            {% if filter_type == 'all' %}
-                                Aún no has creado ninguna tarea. ¡Comienza agregando tu primera tarea!
-                            {% else %}
-                                No hay tareas que coincidan con los filtros seleccionados.
-                            {% endif %}
-                        </p>
-                        <a href="{{ url_for('task_create') }}" class="btn btn-primary">
-                            <i class="fas fa-plus me-2"></i>
-                            Crear Primera Tarea
-                        </a>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
+            <a class="btn small" href="{{ url_for('tasks.edit_task', task_id=task.id) }}">✏ Editar</a>
 
-        {% if tasks %}
-        <!-- Paginación (para versiones futuras) -->
-        <nav class="mt-4" aria-label="Paginación de tareas">
-            <ul class="pagination justify-content-center">
-                <li class="page-item disabled">
-                    <span class="page-link">Anterior</span>
-                </li>
-                <li class="page-item active">
-                    <span class="page-link">1</span>
-                </li>
-                <li class="page-item disabled">
-                    <span class="page-link">Siguiente</span>
-                </li>
-            </ul>
-        </nav>
-        {% endif %}
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-// JavaScript específico para la lista de tareas
-document.addEventListener('DOMContentLoaded', function() {
-    // Auto-submit del formulario de filtros cuando cambian los selectores
-    const filterSelect = document.getElementById('filter');
-    const sortSelect = document.getElementById('sort');
-    
-    [filterSelect, sortSelect].forEach(function(select) {
-        select.addEventListener('change', function() {
-            this.form.submit();
-        });
-    });
-});
-</script>
+            <form method="POST" action="{{ url_for('tasks.delete_task', task_id=task.id) }}" onsubmit="return confirm('¿Eliminar esta tarea?');">
+                <button type="submit" class="btn small danger">🗑 Eliminar</button>
+            </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+{% endif %}
 {% endblock %}
 

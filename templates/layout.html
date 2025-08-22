@@ -1,170 +1,26 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}To-Do App MVC{% endblock %}</title>
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome para iconos -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- CSS personalizado -->
+    <meta charset="utf-8">
+    <title>{% block title %}Gestor de Tareas{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
-    
-    <!-- Bloque para CSS adicional -->
-    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Navegación -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('task_list') }}">
-                <i class="fas fa-tasks me-2"></i>
-                To-Do App MVC
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('task_list') }}">
-                            <i class="fas fa-list me-1"></i>
-                            Todas las Tareas
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('task_create') }}">
-                            <i class="fas fa-plus me-1"></i>
-                            Nueva Tarea
-                        </a>
-                    </li>
-                </ul>
-                
-                <!-- Información adicional en versiones futuras -->
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <span class="navbar-text">
-                            <i class="fas fa-code-branch me-1"></i>
-                            Versión 1.0
-                        </span>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Contenido principal -->
-    <main class="container mt-4">
-        <!-- Mensajes flash -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="alert-container mb-4">
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'info' }} alert-dismissible fade show" role="alert">
-                            <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} me-2"></i>
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-
-        <!-- Breadcrumb -->
-        <nav aria-label="breadcrumb" class="mb-4">
-            <ol class="breadcrumb">
-                {% block breadcrumb %}
-                <li class="breadcrumb-item">
-                    <a href="{{ url_for('task_list') }}">
-                        <i class="fas fa-home me-1"></i>
-                        Inicio
-                    </a>
-                </li>
-                {% endblock %}
-            </ol>
+    <header class="header">
+        <h1><a href="{{ url_for('tasks.index') }}">Gestor de Tareas</a></h1>
+        <nav>
+        <a class="btn" href="{{ url_for('tasks.add_task') }}">➕ Nueva tarea</a>
         </nav>
+    </header>
 
-        <!-- Contenido específico de cada página -->
+    <main class="container">
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-light mt-5 py-4">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h6 class="text-muted">
-                        <i class="fas fa-graduation-cap me-2"></i>
-                        Laboratorio: Arquitectura MVC con Flask
-                    </h6>
-                    <p class="text-muted small mb-0">
-                        Aprendiendo Modelo-Vista-Controlador con Python y Flask
-                    </p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p class="text-muted small mb-0">
-                        <i class="fas fa-flask me-1"></i>
-                        Flask {{ '3.0.0' }} |
-                        <i class="fas fa-database me-1"></i>
-                        SQLAlchemy |
-                        <i class="fab fa-bootstrap me-1"></i>
-                        Bootstrap 5
-                    </p>
-                    <p class="text-muted small mb-0">
-                        <i class="fas fa-calendar me-1"></i>
-                        {{ moment().format('YYYY') if moment else '2024' }}
-                    </p>
-                </div>
-            </div>
-        </div>
+    <footer class="footer">
+        <small>MVC • Flask + SQLAlchemy • {{ request.path }}</small>
     </footer>
-
-    <!-- Scripts -->
-    <!-- Bootstrap JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Script personalizado -->
-    <script>
-        // Funciones JavaScript comunes
-        
-        // Auto-hide alerts después de 5 segundos
-        document.addEventListener('DOMContentLoaded', function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(function(alert) {
-                if (!alert.classList.contains('alert-danger')) {
-                    setTimeout(function() {
-                        const bsAlert = new bootstrap.Alert(alert);
-                        bsAlert.close();
-                    }, 5000);
-                }
-            });
-        });
-        
-        // Confirmación para eliminaciones
-        function confirmDelete(taskName) {
-            return confirm(`¿Estás seguro de que quieres eliminar la tarea "${taskName}"?`);
-        }
-        
-        // Función para mostrar loading en botones
-        function showLoading(button) {
-            const originalText = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Cargando...';
-            button.disabled = true;
-            
-            setTimeout(function() {
-                button.innerHTML = originalText;
-                button.disabled = false;
-            }, 2000);
-        }
-    </script>
-    
-    <!-- Bloque para JavaScript adicional -->
-    {% block extra_js %}{% endblock %}
 </body>
 </html>
+

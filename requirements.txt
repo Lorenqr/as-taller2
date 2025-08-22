@@ -1,4 +1,2 @@
-Flask
-SQLAlchemy
-Flask-SQLAlchemy
-python-dotenv
+Flask==3.0.3
+Flask-SQLAlchemy==3.0.3

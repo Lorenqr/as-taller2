@@ -1,207 +1,47 @@
 {% extends "layout.html" %}
-
-{% set is_edit = task is not none %}
-{% set page_title = "Editar Tarea" if is_edit else "Nueva Tarea" %}
-
-{% block title %}{{ page_title }} - To-Do App MVC{% endblock %}
-
-{% block breadcrumb %}
-{{ super() }}
-<li class="breadcrumb-item">
-    <a href="{{ url_for('task_list') }}">Tareas</a>
-</li>
-<li class="breadcrumb-item active">{{ page_title }}</li>
-{% endblock %}
+{% block title %}{{ 'Editar tarea' if task else 'Nueva tarea' }}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="mb-4">
-            <h1 class="h2 mb-1">
-                <i class="fas fa-{{ 'edit' if is_edit else 'plus' }} text-primary me-2"></i>
-                {{ page_title }}
-            </h1>
-            <p class="text-muted mb-0">
-                {{ "Modifica los datos de tu tarea" if is_edit else "Completa la información para crear una nueva tarea" }}
-            </p>
-        </div>
+    <h2>{{ 'Editar tarea' if task else 'Nueva tarea' }}</h2>
 
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-edit me-2"></i> Información de la Tarea
-                </h5>
-            </div>
-            <div class="card-body">
-                <form method="POST" id="taskForm" novalidate>
-                    <div class="mb-3">
-                        <label for="title" class="form-label">
-                            <i class="fas fa-heading me-1"></i>
-                            Título <span class="text-danger">*</span>
-                        </label>
-                        <input 
-                            type="text" 
-                            class="form-control" 
-                            id="title" 
-                            name="title" 
-                            value="{{ task.title if task else '' }}"
-                            placeholder="Ej: Estudiar para el examen de matemáticas"
-                            required
-                            maxlength="200"
-                        >
-                        <div class="invalid-feedback">
-                            Por favor, ingresa un título para la tarea.
-                        </div>
-                        <div class="form-text">
-                            Máximo 200 caracteres
-                        </div>
-                    </div>
+    {% if errors %}
+        <ul class="errors">
+        {% for e in errors %}
+            <li>{{ e }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
 
-                    <div class="mb-3">
-                        <label for="description" class="form-label">
-                            <i class="fas fa-align-left me-1"></i>
-                            Descripción
-                        </label>
-                        <textarea 
-                            class="form-control" 
-                            id="description" 
-                            name="description" 
-                            rows="4"
-                            placeholder="Describe los detalles de la tarea..."
-                            maxlength="1000"
-                        >{{ task.description if task else '' }}</textarea>
-                        <div class="form-text">
-                            Opcional. Máximo 1000 caracteres
-                        </div>
-                    </div>
+    <form method="POST" class="form">
+        <label>
+        Título *
+        <input type="text" name="title" required
+                value="{% if form %}{{ form.title }}{% elif task %}{{ task.title }}{% else %}{% endif %}">
+        </label>
 
-                    <div class="mb-3">
-                        <label for="due_date" class="form-label">
-                            <i class="fas fa-calendar-alt me-1"></i>
-                            Fecha de Vencimiento
-                        </label>
-                        <input 
-                            type="datetime-local" 
-                            class="form-control" 
-                            id="due_date" 
-                            name="due_date"
-                            value="{{ task.due_date.strftime('%Y-%m-%dT%H:%M') if task and task.due_date else '' }}"
-                            min="{{ moment().strftime('%Y-%m-%dT%H:%M') if moment else '' }}"
-                        >
-                        <div class="form-text">
-                            Opcional. Selecciona cuándo debe completarse la tarea
-                        </div>
-                    </div>
+        <label>
+        Descripción
+        <textarea name="description" rows="4">{% if form %}{{ form.description }}{% elif task %}{{ task.description }}{% else %}{% endif %}</textarea>
+        </label>
 
-                    {% if is_edit %}
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="fas fa-check-circle me-1"></i>
-                            Estado
-                        </label>
-                        <div class="form-check">
-                            <input 
-                                class="form-check-input" 
-                                type="checkbox" 
-                                id="completed" 
-                                name="completed"
-                                {{ 'checked' if task and task.completed else '' }}
-                            >
-                            <label class="form-check-label" for="completed">
-                                Tarea completada
-                            </label>
-                        </div>
-                    </div>
-                    {% endif %}
+        <label>
+        Fecha de vencimiento
+        <input type="date" name="due_date"
+                value="{% if form and form.due_date %}{{ form.due_date }}{% elif task and task.due_date %}{{ task.due_date.strftime('%Y-%m-%d') }}{% else %}{% endif %}">
+        </label>
 
-                    <div class="d-flex justify-content-between align-items-center">
-                        <a href="{{ url_for('task_list') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left me-2"></i>
-                            Cancelar
-                        </a>
-                        
-                        <div>
-                            {% if is_edit %}
-                            <button 
-                                type="button" 
-                                class="btn btn-outline-danger me-2"
-                                data-bs-toggle="modal" 
-                                data-bs-target="#deleteModal"
-                            >
-                                <i class="fas fa-trash me-2"></i>
-                                Eliminar
-                            </button>
-                            {% endif %}
-                            
-                            <button type="submit" class="btn btn-primary" id="submitBtn">
-                                <i class="fas fa-save me-2"></i>
-                                {{ "Actualizar Tarea" if is_edit else "Crear Tarea" }}
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        {% if is_edit and task %}
-        <div class="card mt-4">
-            <div class="card-header">
-                <h6 class="card-title mb-0">
-                    <i class="fas fa-info-circle me-2"></i>
-                    Información Adicional
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <small class="text-muted d-block">Fecha de creación</small>
-                        <span>
-                            <i class="fas fa-calendar me-1"></i>
-                            {{ task.created_at.strftime('%d/%m/%Y a las %H:%M') }}
-                        </span>
-                    </div>
-                    <div class="col-md-6">
-                        <small class="text-muted d-block">Última modificación</small>
-                        <span>
-                            <i class="fas fa-clock me-1"></i>
-                            {{ task.updated_at.strftime('%d/%m/%Y a las %H:%M') }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        {% if task %}
+        <label class="checkbox">
+            <input type="checkbox" name="completed" {% if (form and form.completed) or (task and task.completed) %}checked{% endif %}>
+            Completada
+        </label>
         {% endif %}
-    </div>
-</div>
 
-{% if is_edit and task %}
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">
-                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-                    Confirmar Eliminación
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>¿Estás seguro de que quieres eliminar la tarea <strong>"{{ task.title }}"</strong>?</p>
-                <p class="text-muted mb-0">Esta acción no se puede deshacer.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    Cancelar
-                </button>
-                <form method="POST" action="{{ url_for('task_delete', task_id=task.id) }}" class="d-inline">
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash me-2"></i>
-                        Eliminar Tarea
-                    </button>
-                </form>
-            </div>
+        <div class="form-actions">
+        <button type="submit" class="btn">Guardar</button>
+        <a class="btn secondary" href="{{ url_for('tasks.index') }}">Cancelar</a>
         </div>
-    </div>
-</div>
-{% endif %}
+    </form>
 {% endblock %}
+
+

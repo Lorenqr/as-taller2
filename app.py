@@ -4,12 +4,11 @@ from controllers.task_controller import register_routes
 
 def create_app():
     app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tasks.db'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config.from_object('config.Config')
 
     db.init_app(app)
 
-    # 👉 Aquí registramos las rutas
+    # Aquí registramos las rutas
     register_routes(app)
 
     with app.app_context():
