@@ -13,12 +13,11 @@
         </label>
         <label>Orden:
         <select name="sort" onchange="this.form.submit()">
-            <option value="due_date" {% if sort == 'due_date' %}selected{% endif %}>Fecha vencimiento</option>
+            <option value="due_date" {% if sort == 'due_date' %}selected{% endif %}>Fecha Vencimiento</option>
             <option value="title" {% if sort == 'title' %}selected{% endif %}>Título</option>
         </select>
         </label>
-        <noscript><button type="submit">Aplicar</button></noscript>
-    </form>
+        </form>
 </section>
 
 {% if tasks|length == 0 %}
@@ -40,7 +39,7 @@
             <div class="task-actions">
             <form method="POST" action="{{ url_for('tasks.toggle_task', task_id=task.id) }}">
                 <button type="submit" class="btn small">
-                {% if task.completed %}↩ Marcar pendiente{% else %}✔ Marcar completada{% endif %}
+                {% if task.completed %}↩ Marcar Pendiente{% else %}✔ Marcar Completada{% endif %}
                 </button>
             </form>
 

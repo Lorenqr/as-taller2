@@ -1,11 +1,11 @@
 :root {
     --bg: #f6f7fb;
-    --card: #ffffff;
-    --text: #1f2937;
-    --muted: #6b7280;
-    --primary: #2563eb;
+    --card: #ab9ef5;
+    --text: #080808;
+    --muted: #030303;
+    --primary: #a310f8;
     --primary-contrast: #ffffff;
-    --danger: #ef4444;
+    --danger: #d10d0d;
     --success: #16a34a;
     --warning: #d97706;
     --border: #e5e7eb;
@@ -13,9 +13,11 @@
 
 * { box-sizing: border-box; }
 body {
-    margin: 0; padding: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial;
-    background: var(--bg); color: var(--text);
-}
+    font-family: 'Poppins', sans-serif; /* Aplica la nueva fuente */
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;}
 
 .header {
     display: flex; align-items: center; justify-content: space-between;
