@@ -1,22 +1,20 @@
 from flask import Flask
 from extensions import db
-from controllers.task_controller import register_routes
+from controllers.task_controller import task_bp
 
-def create_app():
-    app = Flask(__name__)
-    app.config.from_object('config.Config')
 
-    db.init_app(app)
+app = Flask(__name__)
 
-    # Aquí registramos las rutas
-    register_routes(app)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+db.init_app(app)
 
-    with app.app_context():
-        db.create_all()
+app.secret_key = 'tu_clave_secreta_aqui'
 
-    return app
+app.register_blueprint(task_bp)
 
-if __name__ == "__main__":
-    app = create_app()
+with app.app_context():
+    db.create_all()
+
+if __name__ == '__main__':
     app.run(debug=True)
 

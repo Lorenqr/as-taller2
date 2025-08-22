@@ -2,15 +2,15 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <title>{% block title %}Gestor de Tareas{% endblock %}</title>
+    <title>{% block title %}MIS TAREAS{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
 </head>
 <body>
     <header class="header">
-        <h1><a href="{{ url_for('tasks.index') }}">Gestor de Tareas</a></h1>
+        <h1><a href="{{ url_for('tasks.index') }}">MIS TAREAS</a></h1>
         <nav>
-        <a class="btn" href="{{ url_for('tasks.add_task') }}">➕ Nueva tarea</a>
+        <a class="btn" href="{{ url_for('tasks.add_task') }}">➕ Nueva Tarea</a>
         </nav>
     </header>
 
